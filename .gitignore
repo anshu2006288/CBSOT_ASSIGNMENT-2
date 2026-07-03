@@ -1,0 +1,4 @@
+.env
+mock_medical_report.pdf
+venv/
+medical_chroma_db/
