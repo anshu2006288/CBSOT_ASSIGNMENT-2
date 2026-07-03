@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="450" viewBox="0 0 900 450" style="background-color: rgb(248, 250, 252); border: 1px solid rgb(226, 232, 240); border-radius: 12px;">
+    <text x="30" y="40" font-family="sans-serif" font-size="16" font-weight="bold" fill="rgb(30, 41, 59)">System Architecture &amp; Data Pipeline Flowchart</text>
+    <!-- Node 1: PDF Upload -->
+    <rect x="50" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
+    <text x="130" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">1. PDF Report Ingestion</text>
+    <!-- Connection 1 -> 2 -->
+    <line x1="210" y1="110" x2="270" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
+    <polygon points="270,106 278,110 270,114" fill="rgb(100, 116, 139)" />
+    <!-- Node 2: Recursive Splitter -->
+    <rect x="280" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
+    <text x="360" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">2. Recursive Chunking</text>
+    <!-- Connection 2 -> 3 -->
+    <line x1="440" y1="110" x2="500" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
+    <polygon points="500,106 508,110 500,114" fill="rgb(100, 116, 139)" />
+    <!-- Node 3: Mistral Embeddings -->
+    <rect x="510" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
+    <text x="590" y="110" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">3. Mistral Embedding</text>
+    <text x="590" y="125" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(1024-dim vectors)</text>
+    <!-- Connection 3 -> 4 -->
+    <line x1="670" y1="110" x2="730" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
+    <polygon points="730,106 738,110 730,114" fill="rgb(100, 116, 139)" />
+    <!-- Node 4: Chroma DB -->
+    <rect x="740" y="80" width="120" height="60" rx="8" ry="8" fill="rgb(5, 150, 105)" />
+    <text x="800" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">4. Chroma DB Store</text>
+    <!-- Down Connection from Chroma DB to Retriever -->
+    <path d="M 800 140 L 800 220 L 730 220" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
+    <polygon points="730,216 722,220 730,224" fill="rgb(100, 116, 139)" />
+    <!-- Down/Left Connection from Embeddings to ML Processing -->
+    <path d="M 590 140 L 590 220 L 210 220" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
+    <polygon points="210,216 202,220 210,224" fill="rgb(100, 116, 139)" />
+    <!-- Node 5: ML Clustering & PCA -->
+    <rect x="50" y="190" width="150" height="80" rx="8" ry="8" fill="rgb(124, 58, 237)" />
+    <text x="125" y="220" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">5. K-Means &amp; PCA</text>
+    <text x="125" y="235" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Topic Clustering &amp;</text>
+    <text x="125" y="250" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">2D Projection)</text>
+    <!-- Node 6: Retriever -->
+    <rect x="550" y="190" width="170" height="60" rx="8" ry="8" fill="rgb(5, 150, 105)" />
+    <text x="635" y="225" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">6. Similarity Search</text>
+    <!-- Connection from 5 -> Plotly inside Interactive UI -->
+    <path d="M 125 270 L 125 345 L 260 345" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
+    <polygon points="260,341 268,345 260,349" fill="rgb(100, 116, 139)" />
+    <!-- Connection from Retriever to LLM -->
+    <line x1="635" y1="250" x2="635" y2="300" stroke="rgb(100, 116, 139)" stroke-width="2" />
+    <polygon points="631,300 635,308 639,300" fill="rgb(100, 116, 139)" />
+    <!-- Node 7: Mistral Large LLM -->
+    <rect x="530" y="310" width="210" height="70" rx="8" ry="8" fill="rgb(79, 70, 229)" />
+    <text x="635" y="340" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">7. Mistral Large LLM</text>
+    <text x="635" y="355" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Generates diagnostic summary)</text>
+    <!-- Connection LLM -> Streamlit Workspace -->
+    <line x1="530" y1="345" x2="428" y2="345" stroke="rgb(100, 116, 139)" stroke-width="2" />
+    <polygon points="428,341 420,345 428,349" fill="rgb(100, 116, 139)" />
+    <!-- Node 8: Streamlit Workspace -->
+    <rect x="270" y="310" width="150" height="70" rx="8" ry="8" fill="rgb(5, 150, 105)" />
+    <text x="345" y="340" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">8. Interactive UI</text>
+    <text x="345" y="355" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Tabs &amp; Plotly Maps)</text>
+</svg>
