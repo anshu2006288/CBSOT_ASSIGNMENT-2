@@ -18,73 +18,48 @@
     <li><strong>Safety &amp; Grounding:</strong> By constraining the generative AI to only write summaries based on retrieved chunks of the uploaded PDF, we eliminate "hallucinations" (the generation of fictitious medical conditions).</li>
     <li><strong>Educational Transparency:</strong> By providing a 2D semantic map of the document chunks, the system reveals the model's inner reasoning, explaining which portions of the text contributed to the clinical assessment.</li>
   </ol>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">3. System Architecture &amp; Data Flow</h2>
-  <p>The system operates as an end-to-end data pipeline that processes clinical files, generates embeddings, clusters topics, and executes similarity retrievals:</p>
-  <svg width="100%" height="450" viewBox="0 0 900 450" style="background-color: rgb(248, 250, 252); border: 1px solid rgb(226, 232, 240); border-radius: 12px; margin: 20px 0;">
-    <text x="30" y="40" font-family="sans-serif" font-size="16" font-weight="bold" fill="rgb(30, 41, 59)">System Architecture &amp; Data Pipeline Flowchart</text>
-    <!-- Node 1: PDF Upload -->
-    <rect x="50" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
-    <text x="130" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">1. PDF Report Ingestion</text>
-    <!-- Connection 1 -> 2 -->
-    <line x1="210" y1="110" x2="270" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
-    <polygon points="270,106 278,110 270,114" fill="rgb(100, 116, 139)" />
-    <!-- Node 2: Recursive Splitter -->
-    <rect x="280" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
-    <text x="360" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">2. Recursive Chunking</text>
-    <!-- Connection 2 -> 3 -->
-    <line x1="440" y1="110" x2="500" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
-    <polygon points="500,106 508,110 500,114" fill="rgb(100, 116, 139)" />
-    <!-- Node 3: Mistral Embeddings -->
-    <rect x="510" y="80" width="160" height="60" rx="8" ry="8" fill="rgb(79, 70, 229)" />
-    <text x="590" y="110" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">3. Mistral Embedding</text>
-    <text x="590" y="125" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(1024-dim vectors)</text>
-    <!-- Connection 3 -> 4 -->
-    <line x1="670" y1="110" x2="730" y2="110" stroke="rgb(100, 116, 139)" stroke-width="2" />
-    <polygon points="730,106 738,110 730,114" fill="rgb(100, 116, 139)" />
-    <!-- Node 4: Chroma DB -->
-    <rect x="740" y="80" width="120" height="60" rx="8" ry="8" fill="rgb(5, 150, 105)" />
-    <text x="800" y="115" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">4. Chroma DB Store</text>
-    <!-- Down Connection from Chroma DB to Retriever -->
-    <path d="M 800 140 L 800 220 L 730 220" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
-    <polygon points="730,216 722,220 730,224" fill="rgb(100, 116, 139)" />
-    <!-- Down/Left Connection from Embeddings to ML Processing -->
-    <path d="M 590 140 L 590 220 L 210 220" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
-    <polygon points="210,216 202,220 210,224" fill="rgb(100, 116, 139)" />
-    <!-- Node 5: ML Clustering & PCA -->
-    <rect x="50" y="190" width="150" height="80" rx="8" ry="8" fill="rgb(124, 58, 237)" />
-    <text x="125" y="220" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">5. K-Means &amp; PCA</text>
-    <text x="125" y="235" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Topic Clustering &amp;</text>
-    <text x="125" y="250" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">2D Projection)</text>
-    <!-- Node 6: Retriever -->
-    <rect x="550" y="190" width="170" height="60" rx="8" ry="8" fill="rgb(5, 150, 105)" />
-    <text x="635" y="225" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">6. Similarity Search</text>
-    <!-- Connection from 5 -> Plotly inside Interactive UI -->
-    <path d="M 125 270 L 125 345 L 260 345" stroke="rgb(100, 116, 139)" stroke-width="2" fill="none" />
-    <polygon points="260,341 268,345 260,349" fill="rgb(100, 116, 139)" />
-    <!-- Connection from Retriever to LLM -->
-    <line x1="635" y1="250" x2="635" y2="300" stroke="rgb(100, 116, 139)" stroke-width="2" />
-    <polygon points="631,300 635,308 639,300" fill="rgb(100, 116, 139)" />
-    <!-- Node 7: Mistral Large LLM -->
-    <rect x="530" y="310" width="210" height="70" rx="8" ry="8" fill="rgb(79, 70, 229)" />
-    <text x="635" y="340" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">7. Mistral Large LLM</text>
-    <text x="635" y="355" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Generates diagnostic summary)</text>
-    <!-- Connection LLM -> Streamlit Workspace -->
-    <line x1="530" y1="345" x2="428" y2="345" stroke="rgb(100, 116, 139)" stroke-width="2" />
-    <polygon points="428,341 420,345 428,349" fill="rgb(100, 116, 139)" />
-    <!-- Node 8: Streamlit Workspace -->
-    <rect x="270" y="310" width="150" height="70" rx="8" ry="8" fill="rgb(5, 150, 105)" />
-    <text x="345" y="340" font-family="sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">8. Interactive UI</text>
-    <text x="345" y="355" font-family="sans-serif" font-size="10" fill="white" text-anchor="middle">(Tabs &amp; Plotly Maps)</text>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">3. Installation &amp; Getting Started</h2>
+  <p>Follow these steps to clone, install, configure, and run the project locally:</p>
+  
+  <h3 style="color: rgb(30, 27, 75); font-size: 1.1rem; margin-top: 20px;">3.1 Clone the Repository</h3>
+  <p>First, clone the repository from GitHub and navigate to the project directory:</p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>git clone https://github.com/your-username/ai-medical-analyzer.git
+cd ai-medical-analyzer</code></pre>
 
-  </svg>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">4. In-Depth Processing Details</h2>
+  <h3 style="color: rgb(30, 27, 75); font-size: 1.1rem; margin-top: 20px;">3.2 Set Up a Virtual Environment</h3>
+  <p>Create and activate a virtual environment to isolate the project dependencies:</p>
+  <p><strong>On Windows (Command Prompt / PowerShell):</strong></p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>python -m venv venv
+venv\Scripts\activate</code></pre>
+  <p><strong>On macOS / Linux:</strong></p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>python3 -m venv venv
+source venv/bin/activate</code></pre>
+
+  <h3 style="color: rgb(30, 27, 75); font-size: 1.1rem; margin-top: 20px;">3.3 Install Dependencies</h3>
+  <p>Install the required Python packages specified in <code>requirements.txt</code>:</p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>pip install -r requirements.txt</code></pre>
+
+  <h3 style="color: rgb(30, 27, 75); font-size: 1.1rem; margin-top: 20px;">3.4 Set Up API Credentials</h3>
+  <p>Create a <code>.env</code> file in the project root directory and define your Mistral API Key:</p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>MISTRAL_API_KEY=your_mistral_api_key_here</code></pre>
+
+  <h3 style="color: rgb(30, 27, 75); font-size: 1.1rem; margin-top: 20px;">3.5 Run the Streamlit Application</h3>
+  <p>Start the application locally using the command below:</p>
+  <pre style="background-color: rgb(241, 245, 249); padding: 15px; border-radius: 8px; border: 1px solid rgb(226, 232, 240); overflow-x: auto; font-family: monospace;"><code>streamlit run app.py</code></pre>
+  <p>Once the server starts, navigate to <strong>http://localhost:8501</strong> in your browser, upload the provided <code>mock_medical_report.pdf</code>, and click <strong>"Start Diagnostics &amp; Semantic Mapping"</strong> to test the system.</p>
+
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">4. System Architecture &amp; Data Flow</h2>
+  <p>The system operates as an end-to-end data pipeline that processes clinical files, generates embeddings, clusters topics, and executes similarity retrievals:</p>
+  <img src="architecture.svg" alt="System Architecture &amp; Data Pipeline Flowchart" style="width: 100%; border: 1px solid rgb(226, 232, 240); border-radius: 12px; margin: 20px 0; background-color: rgb(248, 250, 252);" />
+
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">5. In-Depth Processing Details</h2>
   <p>The pipeline includes three primary processing phases:</p>
   <ul>
     <li><strong>Document Splitting &amp; Preparation:</strong> Raw PDFs are parsed page-by-page. To ensure that continuous test values and reference metrics do not get split across chunk boundaries, we utilize a Recursive Character Text Splitter with a target chunk size of 300 characters and a 50-character overlap. This guarantees contextual cohesion.</li>
     <li><strong>Unsupervised Topic Clustering (K-Means):</strong> All document chunks are converted to 1024-dimensional embeddings using the Mistral embedding model. We apply K-Means clustering to group these embeddings. This partitions the chunks into discrete semantic clusters (e.g., blood cell data, liver enzymes, or metabolic parameters) without requiring human labels.</li>
     <li><strong>Dimensionality Reduction (PCA):</strong> High-dimensional embeddings are projected onto a 2D Cartesian plane using Principal Component Analysis (PCA). By finding the eigenvectors corresponding to the two largest eigenvalues of the embedding covariance matrix, we preserve maximum semantic variance. Plotting these coordinates results in a visual map of the document's structure.</li>
   </ul>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">5. Why We Chose This Tech Stack</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">6. Why We Chose This Tech Stack</h2>
   <p>The system was built using a carefully selected group of Python packages and APIs, chosen for their reliability, developer velocity, and mathematical performance:</p>
   <ul>
     <li><strong>Streamlit:</strong> Enables rapid web deployment with built-in reactive elements. Rather than spending weeks building custom React frontend dashboards, Streamlit handles data binding and UI state natively.</li>
@@ -94,13 +69,13 @@
     <li><strong>Scikit-Learn:</strong> The industry standard for mathematical modeling. It allows us to calculate K-Means centroids and PCA projection matrices with extreme speed.</li>
     <li><strong>Plotly Express:</strong> Streamlit's native charting is static, whereas Plotly lets us render interactive, zoomable, and hover-responsive scatter plots where patients can hover over data points to inspect text segments.</li>
   </ul>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">6. Key Findings &amp; Observations</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">7. Key Findings &amp; Observations</h2>
   <ul>
     <li><strong>Optimal Cluster Separability:</strong> Embeddings generated from structured tables (blood tests) cluster cleanly. The K-Means algorithm naturally groups diagnostic indicators (e.g., LDL, HDL, and Total Cholesterol are grouped into a single cluster).</li>
     <li><strong>High Grounding Rate:</strong> Forcing the LLM to reference only the retrieved chunks of the vector store suppressed hallucinated content. During testing, the model successfully refused to diagnose conditions not present in the document.</li>
     <li><strong>Chunk Granularity:</strong> Larger chunk sizes (e.g., 1000 characters) resulted in poor PCA resolution and merged unrelated diagnostic markers together. Reducing the chunk size to 300 characters significantly improved topic separation.</li>
   </ul>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">7. Technology Stack Summary Table</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">8. Technology Stack Summary Table</h2>
   <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">
     <thead>
       <tr style="background-color: rgb(241, 245, 249); border-bottom: 2px solid rgb(203, 213, 225);">
@@ -147,7 +122,7 @@
       </tr>
     </tbody>
   </table>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">8. Key Features of the Application</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">9. Key Features of the Application</h2>
   <ul>
     <li><strong>Metrics Panel:</strong> Renders top-level counts of total loaded pages, split text chunks, and active RAG retrieve constraints at the top of the screen.</li>
     <li><strong>Interactive PCA Plotting:</strong> Allows the patient to hover over coordinates on the 2D Cartesian chart to inspect specific report text segments.</li>
@@ -156,14 +131,14 @@
     <li><strong>Multi-Tab Workspace:</strong> Displays clinical outputs, the PCA plot, and raw database entries in separate, clean containers.</li>
     <li><strong>Secure Credentials Handling:</strong> Adheres to a strict local environment setup, protecting API keys from entering chat transcripts.</li>
   </ul>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">9. What We Learnt During the Internship</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">10. What We Learnt During the Internship</h2>
   <ul>
     <li><strong>Embedding Space Projections:</strong> Learned to apply PCA to compress 1024-dimensional semantic arrays into 2D points while retaining variance.</li>
     <li><strong>Clustering Mathematics:</strong> Discovered the practical parameters of K-Means clustering, specifically handling distance metric behavior.</li>
     <li><strong>RAG Constraints:</strong> Mastered prompt engineering to restrict LLMs to verified contexts, resolving out-of-bounds hallucinations.</li>
     <li><strong>Reactive State Management:</strong> Solved complex streamlit refresh logic to prevent regenerating expensive database tables upon slider adjustments.</li>
   </ul>
-  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">10. Future Enhancements</h2>
+  <h2 style="color: rgb(79, 70, 229); margin-top: 35px; border-bottom: 1px solid rgb(226, 232, 240); padding-bottom: 6px;">11. Future Enhancements</h2>
   <ul>
     <li><strong>Multi-Modal Diagnostic Reading:</strong> Integrate computer vision and OCR to process graphs, medical scans, and handwritten doctor notes.</li>
     <li><strong>Historical Patient Trends:</strong> Allow patients to upload multiple PDFs over time, plotting changes in blood values (e.g., blood sugar, cholesterol) as line charts.</li>
